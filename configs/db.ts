@@ -1,11 +1,19 @@
-import mongoose from 'mongoose'
-export const connectDB = async () => {
+
+import mongoose, { ConnectOptions } from 'mongoose';
+
+const connectDatabase = async () => {
     try {
-        await mongoose.connect('mongodb://127.0.0.1/vinabook');
-        console.log('DB connect success!');
-    } catch (error) {
-        console.log(error);
-        process.exit(1)
-        
+        if(process.env.DB_URI){
+            const conn = await mongoose.connect(process.env.DB_URI, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            } as ConnectOptions);
+            console.log("DB connected");
+        }
+    } catch (err) {
+        console.error(err);
+        process.exit(1);
     }
-}
+};
+
+export default connectDatabase;
