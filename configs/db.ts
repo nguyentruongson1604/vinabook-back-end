@@ -1,4 +1,3 @@
-
 import mongoose, { ConnectOptions } from 'mongoose';
 
 const connectDatabase = async () => {
