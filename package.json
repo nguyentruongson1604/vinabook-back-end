@@ -24,6 +24,8 @@
     "validator": "^13.11.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.4",
+    "@types/jsonwebtoken": "^9.0.3",
     "@types/multer": "^1.4.7",
     "@types/validator": "^13.11.1",
     "nodemon": "^3.0.1"

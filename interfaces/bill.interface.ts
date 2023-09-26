@@ -2,15 +2,17 @@ import mongoose from "mongoose"
 
 export interface IBill {
     owner?: mongoose.Types.ObjectId,
-    book?: IBooksInBill[],
     name?: string,
+    books?: IBooksInBill[],
     phone?: string,
     address?: string,
-    totalCost?: string
+    totalCost?: number,
+    status?: string
 }
 
 export interface IBooksInBill{
-    bookId: mongoose.Types.ObjectId,
+    bookId: mongoose.Schema.Types.ObjectId,
+    price: number,
     quantity: number,
-    price: number
+    discount: number
 }
