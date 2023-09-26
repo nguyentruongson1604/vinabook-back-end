@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose"
 import { IUser } from "../interfaces/user.interface"
-import isEmail from "validator/lib/isEmail"
+import isEmail from "validator/lib/isEmail";
+import bcrypt from 'bcryptjs'
 
 const userSchema = new Schema<IUser>({
     name: {
@@ -25,5 +26,17 @@ const userSchema = new Schema<IUser>({
         default: 'user'
     }
 })
-
-export const User = mongoose.model<IUser>('User', userSchema)
+userSchema.pre('save',function(next){   //mã hóa password
+    let user = this
+    if(user.password)
+    bcrypt.hash(user.password,10,function(error,hash){
+        if(error){
+            return next(error)
+        }else{
+            user.password = hash
+            next()  //lưu vào dtb
+        }
+    })
+})
+const User = mongoose.model<IUser>('User', userSchema)
+export default  User
