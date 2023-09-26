@@ -24,6 +24,11 @@ const billSchema = new Schema<IBill>({
         ref: 'User',
     },
     book: [booksInBillSchema],
+    name: {
+        type: String,
+        trim: true,
+        required: true,
+    },
     phone: {
         type: String,
         trim: true,
