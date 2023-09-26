@@ -9,6 +9,7 @@ export async function getAllCart(req: Request, res: Response, next: NextFunction
         .populate('listBook.bookId', 'name price');
         res.status(200).json({
             status: 'success',
+            length: carts.length,
             data: carts
         })
     } catch (error) {
@@ -58,7 +59,7 @@ export async function clearCart(req: Request, res: Response, next: NextFunction)
                 runValidators: true
             })
             res.status(200).json({
-                status: 'cart empty'
+                status: 'clear success, cart empty'
             })
         }
         else{
@@ -88,7 +89,7 @@ async function createCart(userId: string, next: NextFunction) {
             owner: userId,
             listBook: []
         })
-        console.log("new cart in add cart", newCart)
+        // console.log("new cart in add cart", newCart)
         return newCart
     } catch (error) {
         next(error)
@@ -98,19 +99,19 @@ async function createCart(userId: string, next: NextFunction) {
 async function addBook(cart: any, newBook: IBookInCart, next: NextFunction){
     try {
         const cartId = new mongoose.Types.ObjectId(cart._id)
-        console.log("cartId", cartId)
+        // console.log("cartId", cartId)
         let listBook = cart.listBook
 
         if(!checkItemInCart(listBook, newBook)){
             
             listBook = [...listBook, newBook]
-            console.log("listBook", listBook)
+            // console.log("listBook", listBook)
             const books = await Cart.findByIdAndUpdate(cartId, {listBook: listBook}, {
                 new: true,
                 runValidators: true
             }).populate('listBook.bookId', 'name price')
 
-            console.log("book", books)
+            // console.log("book", books)
             return books
         }
         else{
@@ -120,7 +121,7 @@ async function addBook(cart: any, newBook: IBookInCart, next: NextFunction){
                     return book
                 }
             })
-            console.log(listBook)
+            // console.log(listBook)
             const books = await Cart.findByIdAndUpdate(cartId, {listBook: listBook, totalCost: 0}, {
                 new: true,
                 runValidators: true
@@ -129,8 +130,8 @@ async function addBook(cart: any, newBook: IBookInCart, next: NextFunction){
             return books
         }
     } catch (error) {
-        // next(error)
-        console.log(error)
+        next(error)
+        // console.log(error)
     }
 }
 
@@ -146,9 +147,9 @@ export async function addBookToCart(req: Request, res: Response, next: NextFunct
         }
         else{
             const newCart = await createCart(userId, next)
-            console.log("new cart", newCart)
+            // console.log("new cart", newCart)
             newListBook = await addBook(newCart, newBook, next)
-            console.log("create cart and add book", newListBook)
+            // console.log("create cart and add book", newListBook)
         }
 
         res.status(200).json({
