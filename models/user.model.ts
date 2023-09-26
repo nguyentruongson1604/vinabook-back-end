@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose"
 import { IUser } from "../interfaces/user.interface"
 import isEmail from "validator/lib/isEmail";
 import bcrypt from 'bcryptjs'
+
 const userSchema = new Schema<IUser>({
     name: {
         type: String,
