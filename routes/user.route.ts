@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { verifyToken } from "../middlewares/verifyToken";
-import checkRole from '../middlewares/CheckRole';
+import checkRole from '../middlewares/checkRole';
 import { getAllUser, login, register, getCurrentUser, updateCurrentUser, changePassword, getOtherInfo, updateOtherInfo, deleteOtherInfo, token } from '../controllers/user.controller'
 
 
