@@ -31,7 +31,7 @@ export const login = async (req: IRequest,res: Response,next: NextFunction) => {
         if( user.password)        
             if(bcrypt.compareSync(req.body.password, user.password)){   //nếu pass đúng                
                 const accessToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!,{ expiresIn: '100d' } )
-                const refreshToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!, { expiresIn: '5m' })
+                const refreshToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!, { expiresIn: '7d' })
                 const response = {
                     status: 'success',
                     accessToken: accessToken,

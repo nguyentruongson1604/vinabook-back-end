@@ -2,6 +2,8 @@ import express from 'express'
 import multer from 'multer'
 import { deleteBook, getAllBook, getBookByAuthor, getBookByCategory, getBookById, getBookByPublisher, newBook, searchBooks, updateBook, uploadBookImage } from '../controllers/book.controller';
 import path from 'path';
+import { verifyToken } from '../middlewares/verifyToken';
+import checkRole from '../middlewares/checkRole';
 
 const storage = multer.diskStorage({
     destination: (req: any, file: any, cb: any) => {
@@ -9,7 +11,7 @@ const storage = multer.diskStorage({
     },
     filename: (req: any, file: any, cb: any)=>{
         const bookId = req.params.bookId
-        console.log('name: ', bookId+".jpg")
+        // console.log('name: ', bookId+".jpg")
         cb(null, bookId+".jpg")
     }
 })
@@ -29,9 +31,11 @@ const upload = multer({
 const Router = express.Router();
 
 Router.route('/all-book').get(getAllBook);
-Router.route('/new-book').post(newBook);
-Router.route('/:bookId').get(getBookById).put(updateBook).delete(deleteBook)
-Router.route('/:bookId/upload').post(upload.single('image'), uploadBookImage)
+Router.route('/new-book').post(verifyToken, checkRole("admin"), newBook);
+Router.route('/:bookId').get(getBookById)
+.put(verifyToken, checkRole("admin"), updateBook)
+.delete(verifyToken, checkRole("admin"), deleteBook)
+Router.route('/:bookId/upload').post(verifyToken, checkRole("admin"), upload.single('image'), uploadBookImage)
 Router.route('/author/:authorId').get(getBookByAuthor)
 Router.route('/category/:categoryId').get(getBookByCategory)
 Router.route('/publisher/:publisherId').get(getBookByPublisher)
