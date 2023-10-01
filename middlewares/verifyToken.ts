@@ -13,7 +13,7 @@ export const verifyToken = (req: IRequest,res: Response,next: NextFunction)=>{
     let accessToken = Authorization?.replace('Bearer ','')   //nhớ ph có cả dấu space
     accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTBjMDJmMDFhYmFlZWYyMjI4M2RkZjgiLCJpYXQiOjE2OTUyODY1NjAsImV4cCI6MTY5NjE1MDU2MH0.a-z7cIvy2yWOEF9D1QNdwMrnP3EDBdhCs8sn2lu6tpA"
     accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTEyNGYzODQ5MDg4ZDg4OTRhZWY4ZjAiLCJpYXQiOjE2OTU2OTg4MzgsImV4cCI6MTcwNDMzODgzOH0.xxUBM9frHvZKfb32m5WQDdM_AFGEp1ESbUL4eSvm-CQ"
-    accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOnsidXNlcklkIjoiNjUxMjRmMzg0OTA4OGQ4ODk0YWVmOGYwIiwiaWF0IjoxNjk1NzE2Nzk0LCJleHAiOjE2OTU3MTcwOTR9LCJpYXQiOjE2OTU3MTY4MDIsImV4cCI6MTcwNDM1NjgwMn0.UlDhGJcg4DF3fw4LchZUX0Z3ar8kJogoKfFBt7p7GUI"
+    accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTEyNGYzODQ5MDg4ZDg4OTRhZWY4ZjAiLCJpYXQiOjE2OTYwNjk3NjksImV4cCI6MTcwNDcwOTc2OX0.AYM3whsO1paxlLQfMWiTjtKMgslifutmW9jWxYiwCuI"
     //**********
 
 
@@ -32,7 +32,7 @@ export const verifyToken = (req: IRequest,res: Response,next: NextFunction)=>{
     try {
         const payload = jwt.verify(accessToken, process.env.APP_SECRET!) as JwtPayload;
         const userId = payload.userId;
-        req.userId = userId.userId;
+        req.userId = userId;
         next();
     } catch (error) {
         // Xử lý lỗi khi xác thực token thất bại

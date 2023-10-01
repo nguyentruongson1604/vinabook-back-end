@@ -4,7 +4,8 @@ import { IBookInCart, ICart } from "../interfaces/cart.interface";
 const booksInCartSchema = new Schema<IBookInCart>({
     bookId: {
         type: Schema.Types.ObjectId,
-        ref: 'Book'
+        ref: 'Book',
+        unique: false
     },
     quantity: {
         type: Number,
@@ -16,12 +17,11 @@ const booksInCartSchema = new Schema<IBookInCart>({
 const cartSchema = new Schema<ICart>({
     owner: {
         type: Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        unique: true
     },
-    listBook: [booksInCartSchema],
-    totalCost: {
-        type: Number,
-        required: true
+    listBook: {
+        type: [booksInCartSchema],
     }
 })
 
