@@ -5,7 +5,7 @@ import IError from "../interfaces/error.interface";
 export const verifyToken = (req: IRequest,res: Response,next: NextFunction)=>{
     //lấy quyền truy cập từ req được gắn ở trong header
     const Authorization = req.header('authorization')
-    console.log(Authorization)
+    // console.log(Authorization)
     //lấy token
     const accessToken = Authorization?.replace('Bearer ','')   //nhớ ph có cả dấu space
 

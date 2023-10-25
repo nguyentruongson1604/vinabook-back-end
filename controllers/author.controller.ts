@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import {Author} from '../models/author.model'
 import IAuthor from "../interfaces/author.interface";
+import { Book } from "../models/book.model";
 
 export async function newAuthor(req: Request, res: Response, next: NextFunction) {
     try {
@@ -59,12 +60,32 @@ export async function deleteAuthor(req: Request, res: Response, next: NextFuncti
 export async function getAuthorById(req: Request, res: Response, next: NextFunction) {
     try {
         const {authorId} = req.params
-        const author = await Author.findById(authorId);
+        const author = await Author.findById(authorId).select('name info');
         res.status(200).json({
-            status: 'deleted',
+            status: 'success',
             data: author
         })
     } catch (error) {
         next(error);
+    }
+}
+
+export async function getAuthorByCategory(req: Request, res: Response, next: NextFunction) {
+    try {
+        const {categoryId} = req.params
+        const filter = {category: {_id: categoryId}}
+        const authorsByCategory = await Book.find(filter).distinct('author')
+        // console.log('***', authorsByCategory)
+        const authors = await Author.find({
+            _id: {
+                $in: [...authorsByCategory]
+            }
+        })
+        res.status(200).json({
+            status: 'success',
+            data: authors
+        })
+    } catch (error) {
+        next(error)
     }
 }
