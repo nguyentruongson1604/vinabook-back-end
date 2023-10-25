@@ -6,10 +6,10 @@ connectDB()
 
 import express from 'express';
 import cors from 'cors';
+
 import { errorHandler } from './middlewares/errorHandler';
 import routerUser from './routes/user.route';
 import routerBill from './routes/bill.route';
-
 import categoryRouter from './routes/category.route'
 import authorRouter from './routes/author.route'
 import publisherRouter from './routes/publisher.route'

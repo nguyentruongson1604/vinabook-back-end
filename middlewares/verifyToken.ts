@@ -3,12 +3,14 @@ import { Response, NextFunction} from 'express'
 import { IRequest } from "../interfaces/request.interface";
 import IError from "../interfaces/error.interface";
 export const verifyToken = (req: IRequest,res: Response,next: NextFunction)=>{
-    //lấy quyền truy cập từ req được gắn ở trong header
+    //lấy quyền truy cập từ req được gắn ở trong header    
     const Authorization = req.header('authorization')
-    // console.log(Authorization)
     //lấy token
-    const accessToken = Authorization?.replace('Bearer ','')   //nhớ ph có cả dấu space
-
+    
+    /* const token = Authorization?.replace('Bearer ','') */
+    //**********    TEST
+    let accessToken = Authorization?.replace('Bearer ','')   //nhớ ph có cả dấu space
+    //**********
     if(!accessToken || String(accessToken) === "null"){
 
         //nếu chưa dnhap, chưa cung cấp token
@@ -23,9 +25,8 @@ export const verifyToken = (req: IRequest,res: Response,next: NextFunction)=>{
     //verify
     try {
         const payload = jwt.verify(accessToken, process.env.APP_SECRET!) as JwtPayload;
-        const userId = payload.userId;
+        const {userId} = payload;
         req.userId = userId;
-        // console.log("userId", userId)
         next();
     } catch (error) {
         // Xử lý lỗi khi xác thực token thất bại
