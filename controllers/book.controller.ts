@@ -20,6 +20,9 @@ export async function getAllBook(req: Request, res: Response, next: NextFunction
 export async function newBook(req: Request, res: Response, next: NextFunction) {
     try {
         const book = req.body as IBook;
+        if(book.imageUrl){
+            book.imageUrl = 'http://localhost:5000/images/books/null'
+        }
         const newBook = await Book.create(book)
         res.status(200).json({
             status: "success",
@@ -37,7 +40,8 @@ export async function uploadBookImage(req: any, res: Response, next: NextFunctio
         }
         else{
             // console.log('image: ', req.file)
-            const imgUrl = path.join('http://localhost:5000/images/books/', req.file.filename)
+            const imgUrl = 'http://localhost:5000/images/books/' + req.file.filename
+            // console.log(imgUrl)
             const bookId = req.params.bookId
             await Book.findByIdAndUpdate(bookId, {imageUrl: imgUrl});
             return res.status(200).json({ message: 'File uploaded successfully!' });
@@ -51,7 +55,7 @@ export async function getBookById(req: Request, res: Response, next: NextFunctio
     try {
         const {bookId} = req.params;
         // console.log(bookId)
-        const book = await Book.findById(new mongoose.Types.ObjectId(bookId))
+        const book = await Book.findById(new mongoose.Types.ObjectId(bookId)).populate('author', 'name').populate('publisher', 'name').populate('category', 'name')
         res.status(200).json({
             status: 'success',
             data: book
@@ -94,7 +98,7 @@ export async function getBookByAuthor(req: Request, res: Response, next: NextFun
     try {
         const {authorId} = req.params;
         const filter = {author: {_id: authorId}}
-        const listBookByAuthor = await Book.find(filter).populate('author', 'name')
+        const listBookByAuthor = await Book.find(filter).populate('author', 'name').populate('publisher', 'name').populate('category', 'name')
         res.status(200).json({
             status: 'success',
             data: listBookByAuthor
@@ -108,7 +112,7 @@ export async function getBookByCategory(req: Request, res: Response, next: NextF
     try {
         const {categoryId} = req.params
         const filter = {category: {_id: categoryId}}
-        const listBook = await Book.find(filter).populate('category', 'name')
+        const listBook = await Book.find(filter).populate('author', 'name').populate('publisher', 'name').populate('category', 'name')
         res.status(200).json({
             status: 'success',
             data: listBook
@@ -122,7 +126,7 @@ export async function getBookByPublisher(req: Request, res: Response, next: Next
     try {
         const {publisherId} = req.params
         const filter = {publisher: {_id: publisherId}}
-        const listBook = await Book.find(filter).populate('publisher', 'name')
+        const listBook = await Book.find(filter).populate('author', 'name').populate('publisher', 'name').populate('category', 'name')
         res.status(200).json({
             status: 'success',
             data: listBook
@@ -134,7 +138,8 @@ export async function getBookByPublisher(req: Request, res: Response, next: Next
 
 export async function searchBooks(req: Request, res: Response, next: NextFunction) {
     try {
-        const {keyword, page, limit} = req.query;
+        let {keyword, page, limit} = req.query;
+        limit = limit?.toString().replace('/', '');
         // console.log('query',req.query)
 
         if (!page || !limit) {
@@ -144,24 +149,58 @@ export async function searchBooks(req: Request, res: Response, next: NextFunctio
             });
         }
 
-        const filterList = await Book.find({})
-        .populate('author', 'name')
-        .populate('publisher', 'name')
-        .populate('category', 'name')
-        .skip(( +page - 1) * +limit)
-        .limit(+limit)
-        .exec()
-        .then((res: any)=>{
-            if(typeof keyword === 'string'){
-                const keyRegex = new RegExp(keyword, 'i');
-                const books = res.filter((book: any)=>{
-                    return keyRegex.test(book.name) || keyRegex.test(book.author.name) || keyRegex.test(book.category.name) || keyRegex.test(book.publisher.name)
-                })
-                return books
+        const filterList = await Book.aggregate([
+            {
+                $lookup: {
+                    from: 'authors',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'publishers',
+                    localField: 'publisher',
+                    foreignField: '_id',
+                    as: 'publisher'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: '$author'
+            },
+            {
+                $unwind: '$publisher'
+            },
+            {
+                $unwind: '$category'
+            },
+            {
+                $match: {
+                    $or: [
+                        {'name': {$regex: keyword, $options: 'i'}},
+                        {'author.name': {$regex: keyword, $options: 'i'}},
+                        {'publsher.name': {$regex: keyword, $options: 'i'}},
+                        {'category.name': {$regex: keyword, $options: 'i'}}
+                    ]
+                }
+            },
+            {
+                $limit: parseInt(limit),
+            },
+            {
+                $skip: (+page - 1) * +limit
             }
-            return null
-        })
-        // console.log(filterList.name)
+        ])
+        
         res.status(200).json({
             status: 'success',
             length: filterList.length,

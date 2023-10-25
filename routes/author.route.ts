@@ -1,5 +1,5 @@
 import express from 'express'
-import { deleteAuthor, getAllAuthor, getAuthorById, newAuthor, updateAuthor } from '../controllers/author.controller';
+import { deleteAuthor, getAllAuthor, getAuthorByCategory, getAuthorById, newAuthor, updateAuthor } from '../controllers/author.controller';
 import { verifyToken } from '../middlewares/verifyToken';
 import checkRole from '../middlewares/checkRole';
 
@@ -10,5 +10,6 @@ Router.route('/all-author').get(getAllAuthor);
 Router.route('/:authorId').put(verifyToken, checkRole("admin"), updateAuthor)
 .delete(verifyToken, checkRole("admin"), deleteAuthor)
 .get(getAuthorById);
+Router.route('/category/:categoryId').get(getAuthorByCategory)
 
 export default Router

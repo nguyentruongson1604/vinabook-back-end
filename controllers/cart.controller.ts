@@ -5,8 +5,8 @@ import { IBookInCart, ICart } from "../interfaces/cart.interface";
 
 export async function getAllCart(req: Request, res: Response, next: NextFunction) {
     try {
-        const carts = await Cart.find({})
-        .populate('listBook.bookId', 'name price');
+        const carts = await Cart.find({}).select('listBook')
+        .populate('listBook.bookId', 'name price discount');
         res.status(200).json({
             status: 'success',
             length: carts.length,
@@ -28,7 +28,7 @@ export async function getCartByUserId(req: Request, res: Response, next: NextFun
                 res.status(200).json({
                     status: 'get success',
                     length: cart.listBook.length,
-                    data: cart.listBook                    
+                    data: cart                    
                 })
             }
             else{
@@ -54,12 +54,13 @@ export async function clearCart(req: Request, res: Response, next: NextFunction)
         const checkCart = (await Cart.find({owner: {_id: new mongoose.Types.ObjectId(userId)}}))
         if(checkCart.length > 0){
             const cartId = checkCart[0]._id
-            await Cart.findByIdAndUpdate(cartId, {listBook: [], totalCost: 0}, {
+            const cart = await Cart.findByIdAndUpdate(cartId, {listBook: [], totalCost: 0}, {
                 new: true,
                 runValidators: true
             })
             res.status(200).json({
-                status: 'clear success, cart empty'
+                status: 'clear success, cart empty',
+                data: cart
             })
         }
         else{
