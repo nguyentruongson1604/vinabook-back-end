@@ -30,7 +30,7 @@ export const login = async (req: IRequest,res: Response,next: NextFunction) => {
         
         if( user.password)        
             if(bcrypt.compareSync(req.body.password, user.password)){   //nếu pass đúng                
-                const accessToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!,{ expiresIn: '100d' } )
+                const accessToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!,{ expiresIn: '7d' } )
                 const refreshToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!, { expiresIn: '7d' })
                 const response = {
                     status: 'success',
@@ -193,10 +193,11 @@ export const token = async (req: IRequest,res: Response,next: NextFunction) =>{
     const userId = jwt.verify(postData.refreshToken, process.env.APP_SECRET!)
     // if refresh token exists
     if((postData.refreshToken)) {
-        const accessToken = jwt.sign({userId: userId}, process.env.APP_SECRET!,{ expiresIn: '100d' } )
+        const accessToken = jwt.sign({userId: userId}, process.env.APP_SECRET!,{ expiresIn: '1m' } )
+        const refreshToken = jwt.sign({userId: userId}, process.env.APP_SECRET!, { expiresIn: '7d' })
         const response = {
             "accessToken": accessToken,
-            "refresh_token": postData.refreshToken
+            "refresh_token": refreshToken
         }
         // update the token in the list
         res.status(200).json(response);        

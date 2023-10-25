@@ -34,7 +34,6 @@ routerUser.route("/changePassword").put(
     changePassword
 );
 
-
 routerUser.route("/otherUser/:id")
     .get(verifyToken, checkRole('admin'), getOtherInfo)
     .put(verifyToken, checkRole('admin'), updateOtherInfo)

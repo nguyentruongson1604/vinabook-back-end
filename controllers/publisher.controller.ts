@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { Publisher } from "../models/publisher.model";
 import { IPublisher } from "../interfaces/publisher.interface";
+import { Book } from "../models/book.model";
+import { Author } from "../models/author.model";
 
 export async function newPublisher(req: Request, res: Response, next: NextFunction) {
     try {
@@ -17,7 +19,7 @@ export async function newPublisher(req: Request, res: Response, next: NextFuncti
 export async function allPublisher(req: Request, res: Response, next: NextFunction) {
     try {
         const listPublisher = await Publisher.find({}).select("name");
-        console.log(listPublisher)
+        // console.log(listPublisher)
         res.status(200).json({
             status: 'success',
             length: listPublisher.length,
@@ -61,5 +63,37 @@ export async function deletePublisher(req: Request, res: Response, next: NextFun
         
     } catch (error) {
         next(error)
+    }
+}
+
+export async function getPublisherByCategory(req: Request, res: Response, next: NextFunction) {
+    try {
+        const {categoryId} = req.params
+        const filter = {category: {_id: categoryId}}
+        const publishersByCategory = await Book.find(filter).distinct('publisher')
+        const publishers = await Publisher.find({
+            _id: {
+                $in: [...publishersByCategory]
+            }
+        })
+        res.status(200).json({
+            status: 'success',
+            data: publishers
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+export async function getPublisherById(req: Request, res: Response, next: NextFunction) {
+    try {
+        const {publisherId} = req.params
+        const publisher = await Publisher.findById(publisherId).select('name info');
+        res.status(200).json({
+            status: 'success',
+            data: publisher
+        })
+    } catch (error) {
+        next(error);
     }
 }
