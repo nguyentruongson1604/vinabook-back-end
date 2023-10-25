@@ -1,8 +1,8 @@
 import express from 'express';
 
 import { verifyToken } from "../middlewares/verifyToken";
-import checkRole from '../middlewares/CheckRole';
-import { getAllUser, login, register, getCurrentUser, updateCurrentUser, changePassword, getOtherInfo, updateOtherInfo, deleteOtherInfo, token } from '../controllers/user.controller'
+import checkRole from '../middlewares/checkRole';
+import { getAllUser, login, register, getCurrentUser, updateCurrentUser, changePassword, getOtherInfo, updateOtherInfo, deleteOtherInfo, token, createOtherInfo } from '../controllers/user.controller'
 
 
 const routerUser = express.Router()
@@ -33,7 +33,7 @@ routerUser.route("/changePassword").put(
     checkRole('all'),
     changePassword
 );
-
+routerUser.route('/createOtherInfo').post( createOtherInfo)
 
 routerUser.route("/otherUser/:id")
     .get(verifyToken, checkRole('admin'), getOtherInfo)

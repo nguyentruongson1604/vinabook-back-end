@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { Response, NextFunction} from 'express'
 import { IRequest } from '../interfaces/request.interface';
 import User from '../models/user.model';
+import mongoose from 'mongoose';
 
 //register
 export const register = async(req: IRequest,res: Response,next: NextFunction) => {
@@ -11,6 +12,19 @@ export const register = async(req: IRequest,res: Response,next: NextFunction) =>
         const user = await User.create(req.body)
         res.status(200).json({   
             status: 'success',
+        })
+    }catch (error){
+        next(error)
+    }
+}
+
+//createOtherInfo
+export const createOtherInfo = async(req: IRequest,res: Response,next: NextFunction) => {
+    try{
+        const user = await User.create(req.body)
+        res.status(200).json({   
+            status: 'success',
+            data: user
         })
     }catch (error){
         next(error)
@@ -31,7 +45,7 @@ export const login = async (req: IRequest,res: Response,next: NextFunction) => {
         if( user.password)        
             if(bcrypt.compareSync(req.body.password, user.password)){   //nếu pass đúng                
                 const accessToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!,{ expiresIn: '100d' } )
-                const refreshToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!, { expiresIn: '5m' })
+                const refreshToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!, { expiresIn: '7d' })
                 const response = {
                     status: 'success',
                     accessToken: accessToken,
@@ -66,7 +80,7 @@ export const getAllUser = async (req: IRequest,res: Response,next: NextFunction)
         })
         .skip((+page! - 1) * +limit!)
         .limit(+limit!);
-
+        
         res.status(200).json({   
             status: 'success',
             data: filteredUsers
@@ -79,14 +93,14 @@ export const getAllUser = async (req: IRequest,res: Response,next: NextFunction)
 //getCurrentUser by All
 export const getCurrentUser = async (req: IRequest,res: Response,next: NextFunction) => {
     try {        
-        const user = await  User.findOne({ _id: req.userId });
+        const user = await  User.findOne({ _id: req.userId });  
         if (!user) return res.status(400).send("This user doesn't exist");
         res.status(200).json({
             status: "success",
             data: user,
         });
     } catch (err) {
-        return res.json({ message: err });
+        next(err)
     }
 }
 
@@ -173,14 +187,12 @@ export const changePassword = async (req: IRequest,res: Response,next: NextFunct
                     data: user
                 })
             } else {
-                res.status(403).json({
-                    message: "Current password error",
-                });
+                const err = new Error('current password is not correct')
+                return next(err)  
             }
         } else {
-            res.status(403).json({
-                message: "Can not find user",
-            });
+            const err = new Error('current password is not correct')
+            return next(err)
         }
     }catch (error){
         next(error)
@@ -196,7 +208,7 @@ export const token = async (req: IRequest,res: Response,next: NextFunction) =>{
         const accessToken = jwt.sign({userId: userId}, process.env.APP_SECRET!,{ expiresIn: '100d' } )
         const response = {
             "accessToken": accessToken,
-            "refresh_token": postData.refreshToken
+            "refreshToken": postData.refreshToken
         }
         // update the token in the list
         res.status(200).json(response);        
