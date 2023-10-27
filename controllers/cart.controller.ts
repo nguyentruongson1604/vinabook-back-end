@@ -1,11 +1,12 @@
-import { Request, Response, NextFunction } from "express";
+import {  Request, Response, NextFunction } from "express";
 import { Cart } from "../models/cart.model";
 import mongoose from "mongoose";
 import { IBookInCart, ICart } from "../interfaces/cart.interface";
+import { IRequest } from "../interfaces/request.interface";
 
-export async function getAllCart(req: Request, res: Response, next: NextFunction) {
+export async function getAllCart(req: IRequest, res: Response, next: NextFunction) {
     try {
-        const carts = await Cart.find({}).select('listBook')
+        const carts = await Cart.find({}).select('listBook owner')
         .populate('listBook.bookId', 'name price discount');
         res.status(200).json({
             status: 'success',
@@ -22,7 +23,7 @@ export async function getCartByUserId(req: Request, res: Response, next: NextFun
         const userId = req.params.userId;
         const checkCart = await Cart.find({owner: {_id: new mongoose.Types.ObjectId(userId)}})
         if(checkCart.length > 0){
-            const cart = await checkCart[0].populate('listBook.bookId', 'name price discount')
+            const cart = await checkCart[0].populate('listBook.bookId', 'name imageUrl price discount')
             if(cart.listBook?.length){
                 // console.log('cart', cart.listBook?.length)
                 res.status(200).json({
@@ -48,9 +49,41 @@ export async function getCartByUserId(req: Request, res: Response, next: NextFun
     }
 }
 
-export async function clearCart(req: Request, res: Response, next: NextFunction) {
+export async function getCart(req: IRequest, res: Response, next: NextFunction) {
     try {
-        const userId = req.params.userId;
+        const userId = req.userId;
+        const checkCart = await Cart.find({owner: {_id: new mongoose.Types.ObjectId(userId)}})
+        if(checkCart.length > 0){
+            const cart = await checkCart[0].populate('listBook.bookId', 'name imageUrl price discount')
+            // console.log('cart', cart)
+            if(cart.listBook?.length){
+                // console.log('cart', cart.listBook?.length)
+                res.status(200).json({
+                    status: 'get success',
+                    length: cart.listBook.length,
+                    data: cart                    
+                })
+            }
+            else{
+                // console.log('cart', cart.listBook?.length)
+                res.status(200).json({
+                    status: 'cart empty',
+                })
+            }
+        }
+        else{
+            res.status(404).json({
+                status: 'cart is not exist'
+            })
+        }
+    } catch (error) {
+        next(error)
+    }
+}
+
+export async function clearCart(req: IRequest, res: Response, next: NextFunction) {
+    try {
+        const userId = req.userId;
         const checkCart = (await Cart.find({owner: {_id: new mongoose.Types.ObjectId(userId)}}))
         if(checkCart.length > 0){
             const cartId = checkCart[0]._id
@@ -136,9 +169,9 @@ async function addBook(cart: any, newBook: IBookInCart, next: NextFunction){
     }
 }
 
-export async function addBookToCart(req: Request, res: Response, next: NextFunction) {
+export async function addBookToCart(req: IRequest, res: Response, next: NextFunction) {
     try {
-        const userId = req.params.userId;
+        const userId = req.userId;
         const checkCart = await Cart.findOne({owner: {_id: new mongoose.Types.ObjectId(userId)}})
         const newBook = req.body
         let newListBook: (mongoose.Document<unknown, {}, ICart> & ICart & { _id: mongoose.Types.ObjectId; }) | null | undefined
@@ -147,7 +180,7 @@ export async function addBookToCart(req: Request, res: Response, next: NextFunct
             newListBook = await addBook(checkCart, newBook, next)
         }
         else{
-            const newCart = await createCart(userId, next)
+            const newCart = await createCart(userId!, next)
             // console.log("new cart", newCart)
             newListBook = await addBook(newCart, newBook, next)
             // console.log("create cart and add book", newListBook)
@@ -171,9 +204,9 @@ async function updateCart(userId: string, books: IBookInCart, next: NextFunction
     }
 }
 
-export async function deleteOneTypeBook(req: Request, res: Response, next: NextFunction) {
+export async function deleteOneTypeBook(req: IRequest, res: Response, next: NextFunction) {
     try {
-        const userId = req.params.userId;
+        const userId = req.userId;
         const bookIdToRemove = req.body.bookId;
 
         const cart = await Cart.findOne({owner: {_id: new mongoose.Types.ObjectId(userId)}})
@@ -187,7 +220,7 @@ export async function deleteOneTypeBook(req: Request, res: Response, next: NextF
         })
 
         if(cart){
-            updateCart(userId, cart, next)
+            updateCart(userId!, cart, next)
             res.status(200).json({
                 status: 'delete success',
                 length: cart.length,
@@ -204,9 +237,9 @@ export async function deleteOneTypeBook(req: Request, res: Response, next: NextF
     }
 }
 
-export async function removeOneBook(req: Request, res: Response, next: NextFunction) {
+export async function removeOneBook(req: IRequest, res: Response, next: NextFunction) {
     try {
-        const userId = req.params.userId;
+        const userId = req.userId;
         const bookIdToRemove = req.query.bookId;
 
         const cart = await Cart.findOne({owner: {_id: new mongoose.Types.ObjectId(userId)}})
@@ -223,7 +256,7 @@ export async function removeOneBook(req: Request, res: Response, next: NextFunct
         })
 
         if(cart){
-            updateCart(userId, cart, next)
+            updateCart(userId!, cart, next)
             res.status(200).json({
                 status: 'success',
                 length: cart.length,
