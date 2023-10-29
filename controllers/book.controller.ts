@@ -6,10 +6,19 @@ import mongoose from "mongoose";
 
 export async function getAllBook(req: Request, res: Response, next: NextFunction) {
     try {
-        const listBook = await Book.find({}).populate('author', 'name').populate('publisher', 'name').populate('category', 'name')
+        const {page, limit} = req.query;
+        const totalResults = await Book.find({})
+        const listBook = await Book.find({})
+        .populate('author', 'name')
+        .populate('publisher', 'name')
+        .populate('category', 'name')
+        .limit(+limit!)
+        .skip((+page! - 1) * +limit!)
+        
         res.status(200).json({
             status: 'success',
             length: listBook.length,
+            page: Math.ceil(totalResults.length / +limit!) ,
             data: listBook
         })
     } catch (error) {
@@ -97,10 +106,19 @@ export async function deleteBook(req: Request, res: Response, next: NextFunction
 export async function getBookByAuthor(req: Request, res: Response, next: NextFunction) {
     try {
         const {authorId} = req.params;
+        const {page, limit} = req.query;
         const filter = {author: {_id: authorId}}
-        const listBookByAuthor = await Book.find(filter).populate('author', 'name').populate('publisher', 'name').populate('category', 'name')
+        const totalResults = await Book.find(filter)
+        const listBookByAuthor = await Book.find(filter)
+        .populate('author', 'name')
+        .populate('publisher', 'name')
+        .populate('category', 'name')
+        .limit(+limit!)
+        .skip((+page! - 1) * +limit!)
         res.status(200).json({
             status: 'success',
+            length: listBookByAuthor.length,
+            page: Math.ceil(totalResults.length / +limit!) ,
             data: listBookByAuthor
         })
     } catch (error) {
@@ -110,11 +128,19 @@ export async function getBookByAuthor(req: Request, res: Response, next: NextFun
 
 export async function getBookByCategory(req: Request, res: Response, next: NextFunction) {
     try {
+        const {page, limit} = req.query;
         const {categoryId} = req.params
         const filter = {category: {_id: categoryId}}
-        const listBook = await Book.find(filter).populate('author', 'name').populate('publisher', 'name').populate('category', 'name')
+        const totalResults = await Book.find(filter)
+        const listBook = await Book.find(filter)
+        .populate('author', 'name')
+        .populate('publisher', 'name')
+        .populate('category', 'name')
+        .limit(+limit!)
+        .skip((+page! - 1) * +limit!)
         res.status(200).json({
             status: 'success',
+            page: Math.ceil(totalResults.length / +limit!) ,
             data: listBook
         })
     } catch (error) {
@@ -124,11 +150,19 @@ export async function getBookByCategory(req: Request, res: Response, next: NextF
 
 export async function getBookByPublisher(req: Request, res: Response, next: NextFunction) {
     try {
+        const {page, limit} = req.query;
         const {publisherId} = req.params
         const filter = {publisher: {_id: publisherId}}
-        const listBook = await Book.find(filter).populate('author', 'name').populate('publisher', 'name').populate('category', 'name')
+        const totalResults = await Book.find(filter)
+        const listBook = await Book.find(filter)
+        .populate('author', 'name')
+        .populate('publisher', 'name')
+        .populate('category', 'name')
+        .limit(+limit!)
+        .skip((+page! - 1) * +limit!)
         res.status(200).json({
             status: 'success',
+            page: Math.ceil(totalResults.length / +limit!) ,
             data: listBook
         })
     } catch (error) {
@@ -139,8 +173,8 @@ export async function getBookByPublisher(req: Request, res: Response, next: Next
 export async function searchBooks(req: Request, res: Response, next: NextFunction) {
     try {
         let {keyword, page, limit} = req.query;
-        limit = limit?.toString().replace('/', '');
-        // console.log('query',req.query)
+        // limit = limit?.toString().replace('/', '');
+        // console.log({page, limit})
 
         if (!page || !limit) {
             return res.status(400).json({
@@ -188,22 +222,66 @@ export async function searchBooks(req: Request, res: Response, next: NextFunctio
                     $or: [
                         {'name': {$regex: keyword, $options: 'i'}},
                         {'author.name': {$regex: keyword, $options: 'i'}},
-                        {'publsher.name': {$regex: keyword, $options: 'i'}},
+                        {'publisher.name': {$regex: keyword, $options: 'i'}},
                         {'category.name': {$regex: keyword, $options: 'i'}}
                     ]
                 }
-            },
-            {
-                $limit: parseInt(limit),
-            },
-            {
-                $skip: (+page - 1) * +limit
             }
-        ])
+        ])      
+        .skip((+page - 1) * (+limit))
+        .limit(+limit)
+
+        const totalResults = await Book.aggregate([
+            {
+                $lookup: {
+                    from: 'authors',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'publishers',
+                    localField: 'publisher',
+                    foreignField: '_id',
+                    as: 'publisher'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: '$author'
+            },
+            {
+                $unwind: '$publisher'
+            },
+            {
+                $unwind: '$category'
+            },
+            {
+                $match: {
+                    $or: [
+                        {'name': {$regex: keyword, $options: 'i'}},
+                        {'author.name': {$regex: keyword, $options: 'i'}},
+                        {'publisher.name': {$regex: keyword, $options: 'i'}},
+                        {'category.name': {$regex: keyword, $options: 'i'}}
+                    ]
+                }
+            }
+        ])      
         
+        // console.log(filterList)
         res.status(200).json({
             status: 'success',
             length: filterList.length,
+            page: Math.floor(totalResults.length / +limit) + 1,
             data: filterList
         })
     } catch (error) {

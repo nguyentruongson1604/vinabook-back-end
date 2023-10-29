@@ -20,10 +20,16 @@ export async function newCategory(req: Request, res: Response, next: NextFunctio
 
 export async function getAllCategory(req: Request, res: Response, next: NextFunction) {
     try {
-        const listCategory = await Category.find({}).select('name');
+        const {page, limit} = req.query;
+        const totalResults = await Category.find({})
+        const listCategory = await Category.find({})
+        .select('name')
+        .limit(+limit!)
+        .skip((+page! - 1) * +limit!);
         res.status(200).json({
             status: 'success',
             length: listCategory.length,
+            page: Math.floor(totalResults.length / +limit!) + 1,
             allCategory: listCategory
         })
     } catch (error) {
@@ -35,19 +41,19 @@ export async function getAllCategoryAndRelation(req: Request, res: Response, nex
     try {
         const listCategory = await Category.find({}).select('name');
         const categoryWithAuthors = await Promise.all(listCategory.map(async (category) => {
-            const listBook = await Book.find({ category: category._id });
-            const authorIds = [...new Set(listBook.map(book => book.author))];
-            const publisherIds = [...new Set(listBook.map(book => book.publisher))];
-            const authors = await Author.find({ _id: { $in: authorIds } }).select('name');
-            const publishers = await Publisher.find({_id: {$in: publisherIds}}).select('name');
+        const listBook = await Book.find({ category: category._id });
+        const authorIds = [...new Set(listBook.map(book => book.author))];
+        const publisherIds = [...new Set(listBook.map(book => book.publisher))];
+        const authors = await Author.find({ _id: { $in: authorIds } }).select('name');
+        const publishers = await Publisher.find({_id: {$in: publisherIds}}).select('name');
 
-            return {
-                ...category.toObject(),
-                authors,
-                publishers,
-                books: listBook.length
-            };
-        }));
+        return {
+            ...category.toObject(),
+            authors,
+            publishers,
+            books: listBook.length
+        };
+    }));
 
         res.status(200).json({
             status: 'success',
