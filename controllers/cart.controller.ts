@@ -6,11 +6,14 @@ import { IRequest } from "../interfaces/request.interface";
 
 export async function getAllCart(req: IRequest, res: Response, next: NextFunction) {
     try {
+        const {page, limit} = req.query;
+        const totalResults = await Cart.find({})
         const carts = await Cart.find({}).select('listBook owner')
         .populate('listBook.bookId', 'name price discount');
         res.status(200).json({
             status: 'success',
             length: carts.length,
+            page: Math.floor(totalResults.length / +limit!) + 1,
             data: carts
         })
     } catch (error) {
