@@ -18,11 +18,17 @@ export async function newPublisher(req: Request, res: Response, next: NextFuncti
 
 export async function allPublisher(req: Request, res: Response, next: NextFunction) {
     try {
-        const listPublisher = await Publisher.find({}).select("name");
+        const {page, limit} = req.query;
+        const totalResults = await Publisher.find({})
+        const listPublisher = await Publisher.find({})
+        .select("name")
+        .limit(+limit!)
+        .skip((+page! - 1) * +limit!);
         // console.log(listPublisher)
         res.status(200).json({
             status: 'success',
             length: listPublisher.length,
+            page: Math.floor(totalResults.length / +limit!) + 1,
             data: listPublisher
         })
     } catch (error) {
@@ -68,16 +74,25 @@ export async function deletePublisher(req: Request, res: Response, next: NextFun
 
 export async function getPublisherByCategory(req: Request, res: Response, next: NextFunction) {
     try {
+        const {page, limit} = req.query;
         const {categoryId} = req.params
         const filter = {category: {_id: categoryId}}
         const publishersByCategory = await Book.find(filter).distinct('publisher')
+        const totalResults = await Publisher.find({
+            _id: {
+                $in: [...publishersByCategory]
+            }
+        })
         const publishers = await Publisher.find({
             _id: {
                 $in: [...publishersByCategory]
             }
         })
+        .limit(+limit!)
+        .skip((+page! - 1) * +limit!)
         res.status(200).json({
             status: 'success',
+            page: Math.floor(totalResults.length / +limit!) + 1,
             data: publishers
         })
     } catch (error) {
