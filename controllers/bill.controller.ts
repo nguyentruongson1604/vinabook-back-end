@@ -16,11 +16,13 @@ export const createUserBill = async(req: IRequest,res: Response,next: NextFuncti
         name: req.body.name,
         phone: req.body.phone,
         books: req.body.books,
+        note: req.body.note,
         totalCost: 0,
         status: "wait",
         address: req.body.address,
         owner: userId
     };
+    
     const billInfor = await Bill.create(bill)
 
     const cast: number = billInfor!.books!.reduce(
@@ -46,10 +48,16 @@ export const getAllBillUser = async(req: IRequest,res: Response,next: NextFuncti
   try {
     // Lấy thông tin tìm kiếm từ query params
     const { search, page, limit } = req.query;
-
     
     // Tìm kiếm người dùng dựa trên query
-    const filteredBill = await Bill.findOne({ owner: req.userId }).find({
+    const filteredBill = await Bill.findOne({ owner: req.userId })
+    .populate({
+      path: "books.bookId",
+      model: Book,
+      select: "name"
+    })
+    .populate('owner', 'name email _id')
+    .find({
         $or: [
           { phone: { $regex: search, $options: "i" } },
         ],
@@ -96,7 +104,7 @@ export const getAllBillAdmin = async(req: IRequest,res: Response,next: NextFunct
 //all
 export const getCurrentBill = async(req: IRequest,res: Response,next: NextFunction) =>{
   try {           
-    const billInfo = await  Bill.findOne({ _id: req.params.id })
+    const billInfo = await  Bill.findOne({ _id: req.params.id })    
     .populate({
       path: "books.bookId",
       model: Book,

@@ -43,6 +43,10 @@ const billSchema = new Schema<IBill>({
         trim: true,
         required: true
     },
+    note:{
+        type: String,
+        trim: true,
+    },
     totalCost:{
         type: Number,
         required: true
