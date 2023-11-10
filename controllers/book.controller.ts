@@ -281,7 +281,7 @@ export async function searchBooks(req: Request, res: Response, next: NextFunctio
         res.status(200).json({
             status: 'success',
             length: filterList.length,
-            page: Math.floor(totalResults.length / +limit) + 1,
+            page: Math.ceil(totalResults.length / +limit!),
             data: filterList
         })
     } catch (error) {

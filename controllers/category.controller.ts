@@ -23,13 +23,13 @@ export async function getAllCategory(req: Request, res: Response, next: NextFunc
         const {page, limit} = req.query;
         const totalResults = await Category.find({})
         const listCategory = await Category.find({})
-        .select('name')
+        .select(['name', 'createdAt'])
         .limit(+limit!)
         .skip((+page! - 1) * +limit!);
         res.status(200).json({
             status: 'success',
             length: listCategory.length,
-            page: Math.floor(totalResults.length / +limit!) + 1,
+            page: Math.ceil(totalResults.length / +limit!),
             allCategory: listCategory
         })
     } catch (error) {

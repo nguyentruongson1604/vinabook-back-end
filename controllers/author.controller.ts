@@ -26,7 +26,7 @@ export async function getAllAuthor(req: Request, res: Response, next: NextFuncti
         res.status(200).json({
             status: "success",
             length: listAuthor.length,
-            page: Math.floor(totalResults.length / +limit!) + 1,
+            page: Math.ceil(totalResults.length / +limit!),
             data: listAuthor
         })
     } catch (error) {
@@ -98,7 +98,7 @@ export async function getAuthorByCategory(req: Request, res: Response, next: Nex
         res.status(200).json({
             status: 'success',
             length: authors.length,
-            page: Math.floor(totalResults.length / +limit!) + 1,
+            page: Math.ceil(totalResults.length / +limit!),
             data: authors
         })
     } catch (error) {
