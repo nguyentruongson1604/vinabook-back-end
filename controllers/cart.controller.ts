@@ -6,15 +6,23 @@ import { IRequest } from "../interfaces/request.interface";
 
 export async function getAllCart(req: IRequest, res: Response, next: NextFunction) {
     try {
-        const {page, limit} = req.query;
-        const totalResults = await Cart.find({})
         const carts = await Cart.find({}).select('listBook owner')
-        .populate('listBook.bookId', 'name price discount');
+        .populate('listBook.bookId', 'name price discount')
+        .populate('owner', 'name');
+
+        const result = carts.map((cart: any)=>{
+            let total = 0;
+            cart.listBook?.map((book: any)=>{
+                // console.log(book)
+                total += book.quantity * (+book.bookId?.price - +book.bookId?.price * +book.bookId?.discount / 100)
+            })
+            return {...cart._doc, totalCost: total}
+        })
+
         res.status(200).json({
             status: 'success',
             length: carts.length,
-            page: Math.floor(totalResults.length / +limit!) + 1,
-            data: carts
+            data: result
         })
     } catch (error) {
         next(error)

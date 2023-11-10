@@ -28,7 +28,7 @@ export async function allPublisher(req: Request, res: Response, next: NextFuncti
         res.status(200).json({
             status: 'success',
             length: listPublisher.length,
-            page: Math.floor(totalResults.length / +limit!) + 1,
+            page: Math.ceil(totalResults.length / +limit!),
             data: listPublisher
         })
     } catch (error) {
@@ -92,7 +92,7 @@ export async function getPublisherByCategory(req: Request, res: Response, next: 
         .skip((+page! - 1) * +limit!)
         res.status(200).json({
             status: 'success',
-            page: Math.floor(totalResults.length / +limit!) + 1,
+            page: Math.ceil(totalResults.length / +limit!),
             data: publishers
         })
     } catch (error) {
