@@ -7,7 +7,8 @@ export interface IBill {
     phone?: string,
     address?: string,
     totalCost?: number,
-    status?: string
+    status?: string,
+    note?: string
 }
 
 export interface IBooksInBill{
