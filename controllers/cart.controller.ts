@@ -65,7 +65,7 @@ export async function getCart(req: IRequest, res: Response, next: NextFunction) 
         const userId = req.userId;
         const checkCart = await Cart.find({owner: {_id: new mongoose.Types.ObjectId(userId)}})
         if(checkCart.length > 0){
-            const cart = await checkCart[0].populate('listBook.bookId', 'name imageUrl price discount')
+            const cart = await checkCart[0].populate('listBook.bookId', 'name imageUrl price discount quantity')
             // console.log('cart', cart)
             if(cart.listBook?.length){
                 // console.log('cart', cart.listBook?.length)
