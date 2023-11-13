@@ -6,6 +6,6 @@ const categorySchema = new Schema<ICategory>({
         type: String,
         required: true
     }
-})
+},{timestamps: true})
 
 export const Category = mongoose.model<ICategory>("Category", categorySchema)

@@ -46,6 +46,6 @@ const bookSchema = new Schema<IBook>({
         ref: 'Category'
     }
 
-})
+}, {timestamps: true})
 
 export const Book = mongoose.model<IBook>('Book', bookSchema)
