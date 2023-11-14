@@ -123,6 +123,37 @@ export const getCurrentBill = async(req: IRequest,res: Response,next: NextFuncti
   }
 }
 
+//get info bill
+//all
+export const getCurrentBillUser = async(req: IRequest,res: Response,next: NextFunction) =>{
+  try { 
+    const userId = new mongoose.Types.ObjectId(req.userId)
+    const billInfo = await  Bill.findOne({ _id: req.params.id })
+    .populate({
+      path: "books.bookId",
+      model: Book,
+      select: "name"
+    })
+    .populate('owner', 'name email _id')
+    if (userId.equals(billInfo?.owner || '')){   
+      if (!billInfo) 
+        return res.status(400).send("This user doesn't exist");
+      res.status(200).json({
+          status: "success",
+          data: billInfo,
+      });
+    }
+    else{
+      res.status(200).json({
+        status: 'error',
+        message: 'You are not the owner'
+      });
+    }
+  } catch (error) {
+    next(error)
+  }
+}
+
 //edit status for bill: admin chuyển trạng thái cho status
 //admin
 export const updateStatusBill = async(req: IRequest,res: Response,next: NextFunction) =>{
@@ -173,17 +204,17 @@ export const updateStatusBill = async(req: IRequest,res: Response,next: NextFunc
 //admin
 export const deleteBill = async(req: IRequest,res: Response,next: NextFunction) =>{
   try {
-    const bill = await Bill.findOne({_id: req.params.id});
-
+    const bill = await Bill.findOne({_id: req.params.id});            
     if (bill?.status === "decline"){
-      await Bill.findOneAndDelete({_id: req.params.id});
+      await Bill.findByIdAndDelete({_id: req.params.id});
       res.status(200).json({
         status: "success",
       });
     }
     else{
       res.status(200).json({
-        status: "Cannot delete bill, check current status again"
+        status: 'error',
+        message: 'Cannot delete bill, check current status again'
       });
     }
 
@@ -192,8 +223,35 @@ export const deleteBill = async(req: IRequest,res: Response,next: NextFunction) 
   }
 }
 
-// //update bill: book, adress
-// //for user, admin
-// export const updateCurrentBill = async(req: IRequest,res: Response,next: NextFunction) =>{
 
-// }
+//delete user bill
+//user
+export const deleteUserBill = async(req: IRequest,res: Response,next: NextFunction) =>{
+  try {
+    const userId = new mongoose.Types.ObjectId(req.userId)
+    const bill = await Bill.findOne({_id: req.params.id});
+    if (userId.equals(bill?.owner || '')){      
+      if (bill?.status === "wait"){
+        await Bill.findByIdAndDelete({_id: req.params.id});
+        res.status(200).json({
+          status: "success",
+        });
+      }
+      else{
+        res.status(200).json({
+          status: 'error',
+          message: 'Cannot delete bill, because your order is being shipped'
+        });
+      }
+    }
+    else{
+      res.status(200).json({
+        status: 'error',
+        message: "Cannot delete bill, because you are not the owner"
+      });
+    }
+
+  } catch (error) {
+    next(error)
+  }
+}

@@ -2,7 +2,7 @@ import express from 'express';
 
 import { verifyToken } from "../middlewares/verifyToken";
 import checkRole from '../middlewares/checkRole';
-import { createUserBill, deleteBill, getAllBillAdmin, getAllBillUser, getCurrentBill, updateStatusBill } from '../controllers/bill.controller';
+import { createUserBill, deleteBill, deleteUserBill, getAllBillAdmin, getAllBillUser, getCurrentBill, getCurrentBillUser, updateStatusBill } from '../controllers/bill.controller';
 
 const routerBill = express.Router()
 
@@ -46,6 +46,14 @@ routerBill.route("/getCurrentBill/:id").get(
     getCurrentBill
 );
 
+//get info bill user
+//user
+routerBill.route("/getCurrentBillUser/:id").get(
+    verifyToken,
+    checkRole('user'),
+    getCurrentBillUser
+);
+
 //edit status for bill: admin chuyển trạng thái cho status
 //admin
 routerBill.route("/updateStatusBill/:id").put(
@@ -62,4 +70,11 @@ routerBill.route("/deleteBill/:id").delete(
     deleteBill
 );
 
+//delete bill
+//user
+routerBill.route("/deleteUserBill/:id").delete(
+    verifyToken,
+    checkRole('user'),
+    deleteUserBill
+);
 export default routerBill;
