@@ -12,6 +12,7 @@ export async function getAllBook(req: Request, res: Response, next: NextFunction
         .populate('author', 'name')
         .populate('publisher', 'name')
         .populate('category', 'name')
+        .sort({'createdAt': -1})
         .limit(+limit!)
         .skip((+page! - 1) * +limit!)
         

@@ -24,6 +24,7 @@ export async function getAllCategory(req: Request, res: Response, next: NextFunc
         const totalResults = await Category.find({})
         const listCategory = await Category.find({})
         .select(['name', 'createdAt'])
+        .sort({'createdAt': -1})
         .limit(+limit!)
         .skip((+page! - 1) * +limit!);
         res.status(200).json({

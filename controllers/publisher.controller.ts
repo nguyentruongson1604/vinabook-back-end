@@ -22,6 +22,7 @@ export async function allPublisher(req: Request, res: Response, next: NextFuncti
         const totalResults = await Publisher.find({})
         const listPublisher = await Publisher.find({})
         .select("name")
+        .sort({'createdAt': -1})
         .limit(+limit!)
         .skip((+page! - 1) * +limit!);
         // console.log(listPublisher)

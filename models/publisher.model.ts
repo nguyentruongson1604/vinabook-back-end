@@ -6,6 +6,6 @@ const publisherSchema = new Schema<IPublisher>({
         type: String,
         required: true
     }
-})
+},{timestamps: true})
 
 export const Publisher = mongoose.model<IPublisher>("Publisher", publisherSchema)

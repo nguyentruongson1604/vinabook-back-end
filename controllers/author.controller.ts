@@ -21,6 +21,7 @@ export async function getAllAuthor(req: Request, res: Response, next: NextFuncti
         const totalResults = await Author.find({})
         const listAuthor = await Author.find({})
         .select(['name', 'info', 'createdAt'])
+        .sort({'createdAt': -1})
         .limit(+limit!)
         .skip((+page! - 1) * +limit!);
         res.status(200).json({
