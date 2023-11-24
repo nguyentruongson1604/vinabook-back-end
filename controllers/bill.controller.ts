@@ -134,8 +134,8 @@ export const getCurrentBillUser = async(req: IRequest,res: Response,next: NextFu
       model: Book,
       select: "name"
     })
-    .populate('owner', 'name email _id')
-    if (userId.equals(billInfo?.owner || '')){   
+    .populate('owner', 'name email _id')    
+    if (userId.equals(billInfo?.owner?._id || '')){   
       if (!billInfo) 
         return res.status(400).send("This user doesn't exist");
       res.status(200).json({

@@ -50,7 +50,7 @@ routerBill.route("/getCurrentBill/:id").get(
 //user
 routerBill.route("/getCurrentBillUser/:id").get(
     verifyToken,
-    checkRole('user'),
+    checkRole('all'),
     getCurrentBillUser
 );
 
@@ -74,7 +74,7 @@ routerBill.route("/deleteBill/:id").delete(
 //user
 routerBill.route("/deleteUserBill/:id").delete(
     verifyToken,
-    checkRole('user'),
+    checkRole('all'),
     deleteUserBill
 );
 export default routerBill;
