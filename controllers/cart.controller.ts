@@ -67,7 +67,7 @@ export async function getCart(req: IRequest, res: Response, next: NextFunction) 
         if(checkCart.length > 0){
             const cart = await checkCart[0].populate('listBook.bookId', 'name imageUrl price discount quantity')
             // console.log('cart', cart)
-            if(cart.listBook?.length){
+            if(cart.listBook){
                 // console.log('cart', cart.listBook?.length)
                 res.status(200).json({
                     status: 'get success',
@@ -75,18 +75,62 @@ export async function getCart(req: IRequest, res: Response, next: NextFunction) 
                     data: cart                    
                 })
             }
-            else{
-                // console.log('cart', cart.listBook?.length)
-                res.status(200).json({
-                    status: 'cart empty',
-                })
-            }
         }
         else{
-            res.status(404).json({
-                status: 'cart is not exist'
+            const newCart = await createCart(userId!, next)
+            res.status(200).json({
+                status: 'get success',
+                length: newCart?.listBook?.length,
+                data: newCart                    
             })
         }
+    } catch (error) {
+        next(error)
+    }
+}
+
+export async function initCartFromLocal(req: IRequest, res: Response, next: NextFunction) {
+    try {
+        const listBookLocal = req.body.listBook
+        const userId = req.userId;
+        const checkCart = (await Cart.findOne({owner: {_id: new mongoose.Types.ObjectId(userId)}}))
+        // console.log('cart', checkCart)
+        if(checkCart){
+            const listBook = listBookLocal.map((book: any)=>{
+                return {
+                    bookId: book.bookId._id,
+                    quantity: book.quantity
+                }
+            })
+
+            const cart = await Cart.findByIdAndUpdate(checkCart, {listBook: listBook}, {
+                    new: true,
+                    runValidators: true
+                }).populate('listBook.bookId', 'name imageUrl price discount quantity')
+
+                res.status(200).json({
+                    data: cart
+                })
+        }
+        else{
+            const newCart = await createCart(userId!, next)
+            const listBook = listBookLocal.map((book: any)=>{
+                return {
+                    bookId: book.bookId._id,
+                    quantity: book.quantity
+                }
+            })
+
+            const cart = await Cart.findByIdAndUpdate(newCart, {listBook: listBook}, {
+                    new: true,
+                    runValidators: true
+                }).populate('listBook.bookId', 'name price')
+
+                res.status(200).json({
+                    data: cart
+                })
+        }
+        
     } catch (error) {
         next(error)
     }
@@ -145,12 +189,11 @@ async function addBook(cart: any, newBook: IBookInCart, next: NextFunction){
     try {
         const cartId = new mongoose.Types.ObjectId(cart._id)
         // console.log("cartId", cartId)
-        let listBook = cart.listBook
-
+        let listBook = cart.listBook.slice()
+        
         if(!checkItemInCart(listBook, newBook)){
-            
             listBook = [...listBook, newBook]
-            // console.log("listBook", listBook)
+            
             const books = await Cart.findByIdAndUpdate(cartId, {listBook: listBook}, {
                 new: true,
                 runValidators: true
@@ -184,6 +227,7 @@ export async function addBookToCart(req: IRequest, res: Response, next: NextFunc
     try {
         const userId = req.userId;
         const checkCart = await Cart.findOne({owner: {_id: new mongoose.Types.ObjectId(userId)}})
+        // console.log({checkCart})
         const newBook = req.body
         let newListBook: (mongoose.Document<unknown, {}, ICart> & ICart & { _id: mongoose.Types.ObjectId; }) | null | undefined
 
