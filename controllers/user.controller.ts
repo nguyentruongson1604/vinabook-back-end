@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { comparePassword, hashPassword } from '../middlewares/comparePassword';
 import bcrypt from "bcryptjs";
 import { Response, NextFunction} from 'express'
@@ -44,7 +44,7 @@ export const login = async (req: IRequest,res: Response,next: NextFunction) => {
         
         if( user.password)        
             if(bcrypt.compareSync(req.body.password, user.password)){   //nếu pass đúng                
-                const accessToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!,{ expiresIn: '7d' } )
+                const accessToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!,{ expiresIn: '10m' } )
                 const refreshToken = jwt.sign({userId: user._id}, process.env.APP_SECRET!, { expiresIn: '7d' })
                 const response = {
                     status: 'success',
@@ -92,7 +92,7 @@ export const getAllUser = async (req: IRequest,res: Response,next: NextFunction)
 
 //getCurrentUser by All
 export const getCurrentUser = async (req: IRequest,res: Response,next: NextFunction) => {
-    try {        
+    try {                
         const user = await  User.findOne({ _id: req.userId });  
         if (!user) return res.status(400).send("This user doesn't exist");
         res.status(200).json({
@@ -202,14 +202,14 @@ export const changePassword = async (req: IRequest,res: Response,next: NextFunct
 export const token = async (req: IRequest,res: Response,next: NextFunction) =>{
     //refresh the damn token
     const postData = req.body
-    const userId = jwt.verify(postData.refreshToken, process.env.APP_SECRET!)
+    const {userId} = jwt.verify(postData.refreshToken, process.env.APP_SECRET!) as JwtPayload
     // if refresh token exists
     if((postData.refreshToken)) {
-        const accessToken = jwt.sign({userId: userId}, process.env.APP_SECRET!,{ expiresIn: '1m' } )
+        const accessToken = jwt.sign({userId: userId}, process.env.APP_SECRET!,{ expiresIn: '10m' } )
         const refreshToken = jwt.sign({userId: userId}, process.env.APP_SECRET!, { expiresIn: '7d' })
         const response = {
             "accessToken": accessToken,
-            "refreshToken": postData.refreshToken
+            "refreshToken": refreshToken
         }
         // update the token in the list
         res.status(200).json(response);        
