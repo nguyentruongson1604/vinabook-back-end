@@ -26,11 +26,14 @@ export const verifyToken = (req: IRequest,res: Response,next: NextFunction)=>{
     try {
         const payload = jwt.verify(accessToken, process.env.APP_SECRET!) as JwtPayload;
         const {userId} = payload;
-        req.userId = userId;
+        req.userId = userId;        
         next();
     } catch (error) {
         // Xử lý lỗi khi xác thực token thất bại
-        const err = new Error('Token verification failed');
+        const err:IError = {
+            message: "Unauthorization",
+            statusCode : 401
+        }
         return next(err);
     }
 }
